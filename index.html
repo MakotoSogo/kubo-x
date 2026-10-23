@@ -315,7 +315,9 @@ function answer(text, btn) {
   $("verdict").textContent = ok ? `正解！ +${gain}点` : (text === null ? "時間切れ…" : "ざんねん…");
   let info = `答え：${q.answer}`;
   if (q.media) {
-    info += `<br>♪ ${esc(q.media.artist)}「${esc(q.media.title)}」`;
+    // ウマ娘など歌い手が多い曲は長くなるので省略する
+    const artist = q.media.artist.length > 40 ? q.media.artist.slice(0, 40) + "…" : q.media.artist;
+    info += `<br>♪ ${esc(artist)}「${esc(q.media.title)}」`;
     if (q.media.link) info += `<br><a href="${q.media.link}" target="_blank" rel="noopener" style="color:var(--mustard)">Apple Musicで聴く</a>`;
   }
   $("info").innerHTML = info;

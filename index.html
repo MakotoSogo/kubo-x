@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>kubo-X-</title>
+<meta name="description" content="戦後の名曲クイズ。10問・1問30秒で、あなたの音楽力を試そう。">
+<meta property="og:title" content="kubo-X-">
+<meta property="og:description" content="戦後の名曲クイズ。10問・1問30秒で、あなたの音楽力を試そう。">
+<meta name="theme-color" content="#1c1210">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="kubo-X-">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Dela+Gothic+One&family=M+PLUS+Rounded+1c:wght@500;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1c1210;
+    --bg2: #2a1b16;
+    --cream: #f6e7c8;
+    --cream-dim: #c9b791;
+    --red: #d7432f;
+    --mustard: #e9b23a;
+    --teal: #2f8f83;
+    --ok: #3fae6a;
+    --ng: #d7432f;
+    --vinyl: #111;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; }
+  body {
+    background: radial-gradient(120% 80% at 50% 0%, #3a241c 0%, var(--bg) 60%) fixed, var(--bg);
+    color: var(--cream);
+    font-family: "M PLUS Rounded 1c", system-ui, sans-serif;
+    font-weight: 500;
+    display: flex; justify-content: center;
+    padding: env(safe-area-inset-top) 16px env(safe-area-inset-bottom);
+  }
+  .app { width: 100%; max-width: 440px; min-height: 100%; display: flex; flex-direction: column; padding: 16px 0 24px; }
+  .screen { display: none; flex: 1; flex-direction: column; }
+  .screen.on { display: flex; }
+
+  /* タイトル */
+  .logo { font-family: "Dela Gothic One", sans-serif; font-size: 56px; line-height: 1; text-align: center; margin: 28px 0 6px;
+    color: var(--mustard); text-shadow: 3px 3px 0 var(--red), 6px 6px 0 #00000066; letter-spacing: 1px; }
+  .tagline { text-align: center; color: var(--cream-dim); margin: 0 0 24px; font-size: 14px; }
+  .rules { background: var(--bg2); border: 2px solid #4a3127; border-radius: 14px; padding: 14px 16px; font-size: 14px; line-height: 1.7; }
+  .rules b { color: var(--mustard); }
+  .best { text-align: center; margin: 18px 0; font-size: 15px; color: var(--cream-dim); }
+  .best strong { color: var(--cream); font-size: 20px; }
+
+  .btn { appearance: none; border: 0; border-radius: 999px; padding: 16px 20px; font: inherit; font-weight: 800; font-size: 18px;
+    background: var(--red); color: var(--cream); box-shadow: 0 5px 0 #8f2618; cursor: pointer; width: 100%; }
+  .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #8f2618; }
+  .btn.sub { background: var(--teal); box-shadow: 0 5px 0 #1d5c54; }
+  .btn.sub:active { box-shadow: 0 2px 0 #1d5c54; }
+  .btn.ghost { background: transparent; color: var(--cream-dim); box-shadow: none; border: 2px solid #4a3127; }
+  .stack { display: flex; flex-direction: column; gap: 14px; margin-top: auto; }
+
+  /* レコード盤 */
+  .turntable { position: relative; width: 210px; height: 210px; margin: 8px auto 14px; }
+  .disc { position: absolute; inset: 0; border-radius: 50%;
+    background: radial-gradient(circle, var(--red) 0 17%, #000 17.5% 19%, transparent 19.5%),
+                repeating-radial-gradient(circle, #1a1a1a 0 2px, #0b0b0b 2px 4px);
+    box-shadow: 0 8px 24px #000a, inset 0 0 0 3px #000; }
+  .disc::after { content: ""; position: absolute; inset: 0; border-radius: 50%;
+    background: conic-gradient(from 30deg, transparent 0 20%, #ffffff18 25%, transparent 30% 70%, #ffffff12 75%, transparent 80%); }
+  .disc .hole { position: absolute; left: 50%; top: 50%; width: 10px; height: 10px; margin: -5px; border-radius: 50%; background: var(--bg); z-index: 1; }
+  .disc .label { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-family: "Dela Gothic One"; font-size: 13px; color: var(--cream); margin-top: 16px; z-index: 1; }
+  .spin { animation: spin 1.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .sleeve { position: absolute; left: -10px; top: 5px; width: 200px; height: 200px; border-radius: 4px; object-fit: cover;
+    box-shadow: 0 10px 24px #000c; background: #333; }
+  .turntable.has-sleeve .disc { transform: translateX(38px); }
+  .turntable.has-sleeve { width: 250px; }
+
+  /* 問題画面 */
+  .hud { display: flex; justify-content: space-between; align-items: center; font-weight: 800; }
+  .hud .qno { font-family: "Dela Gothic One"; font-size: 20px; color: var(--mustard); }
+  .hud .score { font-size: 15px; color: var(--cream-dim); }
+  .timer { height: 10px; background: #3a2820; border-radius: 99px; overflow: hidden; margin: 10px 0 4px; }
+  .timer div { height: 100%; background: var(--mustard); width: 100%; transition: width .2s linear; }
+  .timer div.low { background: var(--red); }
+  .tsec { text-align: right; font-size: 12px; color: var(--cream-dim); }
+  .tag { display: inline-block; font-size: 12px; padding: 2px 10px; border-radius: 99px; background: #4a3127; color: var(--cream-dim); margin-right: 6px; }
+  .question { font-size: 18px; font-weight: 800; line-height: 1.55; margin: 6px 0 14px; min-height: 2.8em; }
+  .play { display: block; margin: -4px auto 12px; width: auto; padding: 10px 22px; font-size: 15px; }
+  .choices { display: grid; gap: 10px; }
+  .choice { appearance: none; text-align: left; font: inherit; font-weight: 800; font-size: 16px; color: var(--bg);
+    background: var(--cream); border: 0; border-radius: 12px; padding: 14px 16px; box-shadow: 0 4px 0 var(--cream-dim); cursor: pointer; }
+  .choice:active { transform: translateY(2px); box-shadow: 0 2px 0 var(--cream-dim); }
+  .choice.correct { background: var(--ok); color: #fff; box-shadow: 0 4px 0 #23794a; }
+  .choice.wrong { background: var(--ng); color: #fff; box-shadow: 0 4px 0 #8f2618; }
+  .choice:disabled { cursor: default; }
+  .choice.dim { opacity: .45; }
+
+  .feedback { margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: var(--bg2); border: 2px solid #4a3127; display: none; }
+  .feedback.on { display: block; }
+  .feedback .verdict { font-family: "Dela Gothic One"; font-size: 22px; }
+  .feedback .verdict.ok { color: var(--ok); }
+  .feedback .verdict.ng { color: var(--ng); }
+  .feedback .info { font-size: 14px; color: var(--cream-dim); margin-top: 4px; line-height: 1.6; }
+  .feedback .btn { margin-top: 12px; }
+
+  /* 結果 */
+  .result-score { text-align: center; margin: 12px 0 4px; }
+  .result-score .big { font-family: "Dela Gothic One"; font-size: 64px; color: var(--mustard); text-shadow: 3px 3px 0 var(--red); line-height: 1.1; }
+  .result-score .sub { font-size: 18px; font-weight: 800; }
+  .rank { text-align: center; font-size: 16px; margin: 8px 0 6px; color: var(--cream); }
+  .newbest { text-align: center; color: var(--mustard); font-weight: 800; display: none; animation: pop .6s ease; }
+  @keyframes pop { from { transform: scale(.6); opacity: 0; } }
+  .history { list-style: none; padding: 0; margin: 14px 0; font-size: 13px; display: grid; gap: 6px; }
+  .history li { background: var(--bg2); border-radius: 10px; padding: 8px 12px; display: flex; gap: 8px; }
+  .history .mark { font-weight: 800; }
+  .history .mark.ok { color: var(--ok); } .history .mark.ng { color: var(--ng); }
+  .toast { position: fixed; left: 50%; bottom: 40px; transform: translateX(-50%); background: var(--cream); color: var(--bg); padding: 10px 18px; border-radius: 99px; font-weight: 800; display: none; }
+  .loading { text-align: center; margin: auto; color: var(--cream-dim); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- タイトル -->
+  <section class="screen on" id="s-title">
+    <div class="turntable"><div class="disc spin"><div class="hole"></div><div class="label">1945→</div></div></div>
+    <h1 class="logo">kubo-X-</h1>
+    <p class="tagline">戦後の名曲クイズ</p>
+    <div class="rules">
+      全<b>10問</b>・1問<b>30秒</b>の4択クイズ。<br>
+      文字の問題のほか、<b>ジャケット</b>を見る問題、<b>曲を聴く</b>問題も出ます。<br>
+      早く正解するほど高得点（1問最大100点）。<br>
+      🔊 音が出ます。マナーモードを解除してね。
+    </div>
+    <p class="best" id="best"></p>
+    <div class="stack"><button class="btn" id="start">スタート</button></div>
+  </section>
+
+  <!-- 読み込み中 -->
+  <section class="screen" id="s-loading"><p class="loading">レコードを探しています…</p></section>
+
+  <!-- 問題 -->
+  <section class="screen" id="s-quiz">
+    <div class="hud"><span class="qno" id="qno">Q1</span><span class="score" id="score">0点</span></div>
+    <div class="timer"><div id="bar"></div></div>
+    <div class="tsec" id="tsec">30秒</div>
+    <div id="media"></div>
+    <div><span class="tag" id="tag-type"></span><span class="tag" id="tag-level"></span></div>
+    <p class="question" id="question"></p>
+    <div class="choices" id="choices"></div>
+    <div class="feedback" id="feedback">
+      <div class="verdict" id="verdict"></div>
+      <div class="info" id="info"></div>
+      <button class="btn sub" id="next">次へ</button>
+    </div>
+  </section>
+
+  <!-- 結果 -->
+  <section class="screen" id="s-result">
+    <div class="turntable"><div class="disc spin"><div class="hole"></div><div class="label">RESULT</div></div></div>
+    <div class="result-score">
+      <div class="big" id="r-points">0</div>
+      <div class="sub" id="r-correct"></div>
+    </div>
+    <p class="newbest" id="r-newbest">★ 自己ベスト更新！</p>
+    <p class="rank" id="r-rank"></p>
+    <ul class="history" id="r-history"></ul>
+    <div class="stack">
+      <button class="btn sub" id="share">結果を送る（LINEなど）</button>
+      <button class="btn" id="again">もう一度あそぶ</button>
+      <button class="btn ghost" id="totitle">タイトルへ</button>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast"></div>
+<audio id="player" preload="auto" playsinline></audio>
+
+<script src="questions.js"></script>
+<script>
+const ROUND = 10, LIMIT = 30;
+const TYPE_LABEL = { text: "文字", jacket: "ジャケット", audio: "試聴" };
+const LEVEL_LABEL = { 1: "やさしい", 2: "ふつう", 3: "むずかしい" };
+const $ = id => document.getElementById(id);
+const player = $("player");
+
+let round = [], idx = 0, points = 0, correct = 0, log = [];
+let timerId = null, startedAt = 0, answered = false;
+
+// 最高記録（保存できない環境でも遊べるようにする）
+function loadBest() { try { return JSON.parse(localStorage.getItem("kuboX.best")) || null; } catch { return null; } }
+function saveBest(b) { try { localStorage.setItem("kuboX.best", JSON.stringify(b)); } catch {} }
+function showBest() {
+  const b = loadBest();
+  $("best").innerHTML = b ? `自己ベスト <strong>${b.points}点</strong>（${b.correct}/10問正解）` : "まだ記録はありません";
+}
+
+function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function show(id) { document.querySelectorAll(".screen").forEach(s => s.classList.toggle("on", s.id === id)); window.scrollTo(0, 0); }
+function toast(msg) { const t = $("toast"); t.textContent = msg; t.style.display = "block"; clearTimeout(t._h); t._h = setTimeout(() => t.style.display = "none", 1800); }
+
+// Appleから画像・試聴音源を1回のリクエストでまとめて取得
+async function fetchMedia(list) {
+  const ids = list.filter(q => q.id).map(q => q.id);
+  if (!ids.length) return {};
+  const res = await fetch(`https://itunes.apple.com/lookup?id=${ids.join(",")}&country=JP`);
+  const data = await res.json();
+  const map = {};
+  for (const r of data.results) {
+    map[r.trackId ?? r.collectionId] = {
+      art: r.artworkUrl100 && r.artworkUrl100.replace("100x100bb", "600x600bb"),
+      preview: r.previewUrl, artist: r.artistName, title: r.trackName ?? r.collectionName,
+      link: r.trackViewUrl ?? r.collectionViewUrl,
+    };
+  }
+  return map;
+}
+
+async function startGame() {
+  // iPhoneで音を鳴らすため、タップした瞬間に一度プレーヤーを動かしておく
+  player.src = silentWav();
+  player.play().then(() => player.pause()).catch(() => {});
+
+  show("s-loading");
+  const pool = shuffle(QUESTIONS);
+  let picked = pool.slice(0, ROUND);
+  let media = {};
+  try { media = await fetchMedia(picked); } catch (e) { media = {}; }
+  // 画像・音が取れなかった問題は、文字の問題と入れ替える
+  const spareText = pool.slice(ROUND).filter(q => q.type === "text");
+  picked = picked.map(q => {
+    if (!q.id) return q;
+    const m = media[q.id];
+    if (m && (q.type === "jacket" ? m.art : m.preview)) return { ...q, media: m };
+    return spareText.shift() || q;
+  }).filter(q => !q.id || q.media);
+  round = shuffle(picked);
+  round.forEach(q => { if (q.type === "jacket") new Image().src = q.media.art; });
+  idx = 0; points = 0; correct = 0; log = [];
+  show("s-quiz");
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = round[idx];
+  answered = false;
+  $("qno").textContent = `Q${idx + 1}/${round.length}`;
+  $("score").textContent = `${points}点`;
+  $("tag-type").textContent = TYPE_LABEL[q.type];
+  $("tag-level").textContent = LEVEL_LABEL[q.level];
+  $("question").textContent = q.q;
+  $("feedback").classList.remove("on");
+
+  const media = $("media");
+  media.innerHTML = "";
+  player.pause();
+  if (q.type === "jacket") {
+    media.innerHTML = `<div class="turntable has-sleeve"><div class="disc"><div class="hole"></div></div><img class="sleeve" alt="ジャケット" src="${q.media.art}"></div>`;
+  } else if (q.type === "audio") {
+    media.innerHTML = `<div class="turntable"><div class="disc spin" id="audio-disc"><div class="hole"></div><div class="label">♪ ?</div></div></div>
+      <button class="btn sub play" id="replay">▶ もう一度聴く</button>`;
+    player.src = q.media.preview;
+    player.currentTime = 0;
+    const disc = $("audio-disc");
+    player.play().catch(() => { disc.classList.remove("spin"); $("replay").textContent = "▶ 再生する"; });
+    $("replay").onclick = () => { player.currentTime = 0; player.play(); disc.classList.add("spin"); };
+  }
+
+  const box = $("choices");
+  box.innerHTML = "";
+  for (const text of shuffle([q.answer, ...q.wrong])) {
+    const b = document.createElement("button");
+    b.className = "choice";
+    b.textContent = text;
+    b.onclick = () => answer(text, b);
+    box.appendChild(b);
+  }
+  startTimer();
+}
+
+function startTimer() {
+  clearInterval(timerId);
+  startedAt = performance.now();
+  const tick = () => {
+    const left = Math.max(0, LIMIT - (performance.now() - startedAt) / 1000);
+    $("bar").style.width = (left / LIMIT * 100) + "%";
+    $("bar").classList.toggle("low", left <= 10);
+    $("tsec").textContent = `${Math.ceil(left)}秒`;
+    if (left <= 0) answer(null, null);
+  };
+  tick();
+  timerId = setInterval(tick, 200);
+}
+
+function answer(text, btn) {
+  if (answered) return;
+  answered = true;
+  clearInterval(timerId);
+  const q = round[idx];
+  const left = Math.max(0, LIMIT - (performance.now() - startedAt) / 1000);
+  const ok = text === q.answer;
+  // 正解は最大100点。残り時間0でも50点
+  const gain = ok ? Math.round(50 + 50 * left / LIMIT) : 0;
+  points += gain;
+  if (ok) correct++;
+  log.push({ q, ok });
+
+  document.querySelectorAll(".choice").forEach(b => {
+    b.disabled = true;
+    if (b.textContent === q.answer) b.classList.add("correct");
+    else if (b === btn) b.classList.add("wrong");
+    else b.classList.add("dim");
+  });
+  $("score").textContent = `${points}点`;
+  $("verdict").className = "verdict " + (ok ? "ok" : "ng");
+  $("verdict").textContent = ok ? `正解！ +${gain}点` : (text === null ? "時間切れ…" : "ざんねん…");
+  let info = `答え：${q.answer}`;
+  if (q.media) {
+    info += `<br>♪ ${esc(q.media.artist)}「${esc(q.media.title)}」`;
+    if (q.media.link) info += `<br><a href="${q.media.link}" target="_blank" rel="noopener" style="color:var(--mustard)">Apple Musicで聴く</a>`;
+  }
+  $("info").innerHTML = info;
+  if (q.type === "audio") {
+    // 答えが出たらジャケットも見せる
+    $("media").querySelector(".turntable").outerHTML = `<div class="turntable has-sleeve"><div class="disc spin"><div class="hole"></div></div><img class="sleeve" alt="ジャケット" src="${q.media.art}"></div>`;
+  }
+  $("next").textContent = idx + 1 < round.length ? "次へ" : "結果を見る";
+  $("feedback").classList.add("on");
+  $("feedback").scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+// 0.1秒の無音WAV（音を鳴らす許可を先に取るため）
+function silentWav() {
+  const n = 800, buf = new ArrayBuffer(44 + n), v = new DataView(buf);
+  const str = (o, s) => [...s].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
+  str(0, "RIFF"); v.setUint32(4, 36 + n, true); str(8, "WAVEfmt ");
+  v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, 8000, true); v.setUint32(28, 8000, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true);
+  str(36, "data"); v.setUint32(40, n, true);
+  for (let i = 0; i < n; i++) v.setUint8(44 + i, 128);
+  return URL.createObjectURL(new Blob([buf], { type: "audio/wav" }));
+}
+
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c])); }
+
+function next() {
+  idx++;
+  if (idx < round.length) renderQuestion();
+  else finish();
+}
+
+function rankText(c) {
+  if (c === 10) return "🏆 レコード大賞！ 完璧です";
+  if (c >= 8) return "🎸 名プロデューサー級";
+  if (c >= 6) return "📻 なかなかの音楽通";
+  if (c >= 4) return "🎵 ふつうのリスナー";
+  return "🎧 これから掘っていこう";
+}
+
+function finish() {
+  player.pause();
+  $("r-points").textContent = points;
+  $("r-correct").textContent = `${correct}/${round.length}問正解`;
+  $("r-rank").textContent = rankText(correct);
+  const best = loadBest();
+  const isNew = !best || points > best.points;
+  if (isNew) saveBest({ points, correct });
+  $("r-newbest").style.display = isNew ? "block" : "none";
+  $("r-history").innerHTML = log.map(({ q, ok }) =>
+    `<li><span class="mark ${ok ? "ok" : "ng"}">${ok ? "○" : "×"}</span><span>${esc(q.answer)}</span></li>`).join("");
+  show("s-result");
+}
+
+function shareText() {
+  return `🎵 kubo-X- 戦後の名曲クイズ\n${correct}/${round.length}問正解・${points}点！\n${rankText(correct)}\n${location.href.split("#")[0]}`;
+}
+
+async function share() {
+  const text = shareText();
+  if (navigator.share) {
+    try { await navigator.share({ text }); return; } catch (e) { if (e.name === "AbortError") return; }
+  }
+  try { await navigator.clipboard.writeText(text); toast("結果をコピーしました"); }
+  catch { location.href = "https://line.me/R/msg/text/?" + encodeURIComponent(text); }
+}
+
+$("start").onclick = startGame;
+$("again").onclick = startGame;
+$("next").onclick = next;
+$("share").onclick = share;
+$("totitle").onclick = () => { showBest(); show("s-title"); };
+showBest();
+</script>
+</body>
+</html>

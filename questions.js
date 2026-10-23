@@ -396,4 +396,7 @@ const QUESTIONS = [
   { type: "audio", id: 1716486673, region: "邦楽", level: 2, decade: 2000,
     q: "LAST ALLIANCEのこの曲のタイトルは？",
     answer: "疾走", wrong: ["Fly again, hero", "蒼い銃創", "astrogate-0"] },
+  { type: "audio", id: 1758674008, region: "邦楽", level: 2, decade: 2000,
+    q: "LAST ALLIANCEのこの曲のタイトルは？",
+    answer: "漂う夕暮れに、消えてゆく日々", wrong: ["ラッキー・ルチアーノに射たれる前に", "真冬の蝉", "流星涙"] },
 ];
